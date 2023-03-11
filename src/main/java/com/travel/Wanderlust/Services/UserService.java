@@ -2,7 +2,10 @@ package com.travel.Wanderlust.Services;
 
 import com.travel.Wanderlust.Entities.User;
 import com.travel.Wanderlust.Repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,15 +13,25 @@ import java.util.List;
 @Service
 public class UserService {
 
+    public static final String USER_NOT_ADDED = "The email you typed is already in use";
     @Autowired
     private final UserRepository userRepository;
-
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    private static final Logger LOG = LoggerFactory.getLogger(UserService.class);
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    public User save(User user) {
-        return userRepository.save(user);
+    public String save(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        try {
+            userRepository.save(user);
+            return "User added succesfully";
+        }catch (Exception e){
+            LOG.info(USER_NOT_ADDED);
+            return USER_NOT_ADDED;
+        }
     }
 
     public User findById(Long id) {
