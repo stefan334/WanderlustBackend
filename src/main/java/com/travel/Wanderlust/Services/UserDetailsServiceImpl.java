@@ -26,11 +26,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         System.out.println(user);
         if (user == null) {
             LOG.info("Not found");
-            System.out.println("NOT FOUND");
             throw new UsernameNotFoundException(email);
         }
         LOG.info("Found");
-        System.out.println("FOUND");
         return new MyUserPrincipal(user);
     }
 

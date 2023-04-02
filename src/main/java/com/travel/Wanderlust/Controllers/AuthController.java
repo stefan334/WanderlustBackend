@@ -7,6 +7,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 public class AuthController {
 
@@ -19,11 +22,13 @@ public class AuthController {
     }
 
     @PostMapping("/token")
-    public String token(Authentication authentication) {
+    public Map<String,String> token(Authentication authentication) {
         LOG.info("Token requested for user: '{}'", authentication.getName());
         String token = tokenService.generateToken(authentication);
         LOG.info("Token granted: {}", token);
-        return token;
+        Map<String, String> map = new HashMap<>();
+        map.put("access_token", token);
+        return map;
     }
 
 }

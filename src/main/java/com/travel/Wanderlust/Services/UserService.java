@@ -2,13 +2,16 @@ package com.travel.Wanderlust.Services;
 
 import com.travel.Wanderlust.Entities.User;
 import com.travel.Wanderlust.Repositories.UserRepository;
+import com.travel.Wanderlust.config.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserService {
@@ -23,19 +26,23 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public String save(User user) {
+    public Map<String,String> save(User user) {
+        Map<String,String> response = new HashMap<>();
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         try {
+            user.setRole(Role.USER);
             userRepository.save(user);
-            return "User added succesfully";
+            response.put("response", "User Added");
         }catch (Exception e){
             LOG.info(USER_NOT_ADDED);
-            return USER_NOT_ADDED;
+            response.put("response", USER_NOT_ADDED);
         }
+        return response;
     }
 
-    public User findById(Long id) {
-        return userRepository.findById(id).orElse(null);
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     public List<User> findAll() {

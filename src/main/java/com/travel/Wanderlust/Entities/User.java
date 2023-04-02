@@ -4,6 +4,9 @@ import com.travel.Wanderlust.config.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.Set;
+
 
 @AllArgsConstructor
 @Getter
@@ -26,8 +29,16 @@ public class User {
     private String password;
     @Column(name = "role")
     private Role role = Role.USER;
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "image_id", targetEntity = Image.class)
+    private Set<Image> imagesUploaded;
 
+    public Role getRole() {
+        return role;
+    }
 
+    public void addImage(Image image){
+        this.imagesUploaded.add(image);
+    }
 
     public void setRole(Role role) {
         this.role = role;
