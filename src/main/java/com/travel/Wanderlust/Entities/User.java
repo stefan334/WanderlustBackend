@@ -1,10 +1,13 @@
 package com.travel.Wanderlust.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.travel.Wanderlust.config.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 
@@ -29,7 +32,8 @@ public class User {
     private String password;
     @Column(name = "role")
     private Role role = Role.USER;
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "image_id", targetEntity = Image.class)
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "user_id", targetEntity = Image.class)
+    @JsonManagedReference
     private Set<Image> imagesUploaded;
 
     public Role getRole() {

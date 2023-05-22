@@ -1,5 +1,6 @@
 package com.travel.Wanderlust.Entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +24,7 @@ public class Image {
     private String location;
     @ManyToOne
     @JoinColumn(name="id")
+    @JsonBackReference
     private User user_id;
 
 
