@@ -1,16 +1,26 @@
 package com.travel.Wanderlust.Controllers;
 
 import com.travel.Wanderlust.Entities.Image;
+import com.travel.Wanderlust.Entities.Location;
 import com.travel.Wanderlust.Entities.User;
+import com.travel.Wanderlust.Repositories.LocationRepository;
 import com.travel.Wanderlust.Repositories.UserRepository;
 import com.travel.Wanderlust.Services.UserService;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 
 @RestController
 public class UserController {
@@ -18,6 +28,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private LocationRepository locationRepository;
 
     @PostMapping("/register")
     public Map<String, String> saveUser(@RequestBody User user) {
@@ -42,29 +54,101 @@ public class UserController {
     }
 
     @PostMapping("/uploadImage")
-    public boolean uploadImage(@RequestParam("email") String email, @RequestParam("image") MultipartFile imageFile) {
+    public boolean uploadImage(@RequestParam("email") String email, @RequestParam("image") MultipartFile imageFile, @RequestParam("location") String location, @RequestParam("name")String name) {
         try {
             Image image = new Image();
-            image.setName(imageFile.getOriginalFilename());
 
+            image.setLocation(location);
             User user = userService.findByEmail(email);
-            image.setUser_id(user);
 
+            String fileName = imageFile.getOriginalFilename();
+            String fileExtension = FilenameUtils.getExtension(fileName);
+            String savedFileName = user.getId() + "_" + System.currentTimeMillis() + "." + fileExtension;
+            Path savedFilePath = Paths.get("src/main/resources/images", savedFileName);
+            Files.copy(imageFile.getInputStream(), savedFilePath, StandardCopyOption.REPLACE_EXISTING);
+
+            image.setUser_id(user);
+            image.setName(name);
+            image.setFilePath(savedFileName);
             if (user.getImagesUploaded() == null) {
                 user.setImagesUploaded(new HashSet<>());
             }
 
             user.addImage(image);
             userRepository.save(user);
-
-            // Save the image file to your desired location
-            // You can use imageFile.getInputStream() to get the input stream of the file
-            // and save it to your desired storage (e.g., local disk, cloud storage, etc.)
-
         } catch (Exception e) {
             System.out.println(e);
             return false;
         }
         return true;
     }
+
+    @GetMapping("/getImage/{imageSavedName}")
+    public ResponseEntity<Resource> getImage(@PathVariable String imageSavedName) throws IOException {
+        Path imagePath = Paths.get("src/main/resources/images", imageSavedName);
+
+        Resource resource = new UrlResource(imagePath.toUri());
+
+        if (resource.exists() && resource.isReadable()) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG) // Change the content type based on your image type
+                    .body(resource);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/getImages/{email}")
+    public List<Image> getImages(@PathVariable String email) throws IOException {
+        User user = userService.findByEmail(email);
+        Set<Image> images = user.getImagesUploaded();
+        List<Image> imagesToReturn = new ArrayList<>();
+        for(Image image : images){
+            if(image.getFilePath() != null) {
+                Path imagePath = Paths.get("src/main/resources/images", image.getFilePath());
+
+                Resource resource = new UrlResource(imagePath.toUri());
+                if (resource.exists() && resource.isReadable()) {
+                    Image imageWithURI = new Image();
+                    imageWithURI.setName(image.getName());
+                    imageWithURI.setFilePath("http://localhost:8080/getImage/" + image.getFilePath());
+                    imagesToReturn.add(imageWithURI);
+                }
+            }
+        }
+
+        return imagesToReturn;
+    }
+
+    @PostMapping("/user/locations")
+    public ResponseEntity<?> addLocationsToUser(@RequestParam("email") String email, @RequestParam List<String> locations) {
+        User user = userService.findByEmail(email);
+
+        if (user == null) {
+            // User not found
+            return ResponseEntity.notFound().build();
+        }
+
+        List<Location> visitedLocations = new ArrayList<>();
+
+        for (String locationName : locations) {
+            Location location = locationRepository.findByName(locationName);
+
+            if (location == null) {
+                // Location does not exist, create a new one
+                location = new Location();
+                location.setName(locationName);
+                locationRepository.save(location);
+            }
+
+            visitedLocations.add(location);
+        }
+
+        // Add visited locations to the user
+        user.getVisitedLocations().addAll(visitedLocations);
+        userRepository.save(user);
+
+        return ResponseEntity.ok().build();
+    }
+
 }

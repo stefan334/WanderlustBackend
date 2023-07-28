@@ -28,6 +28,9 @@ public class QuizQuestion {
     @Column(name = "answer")
     private List<String> answers;
 
+    @Transient
+    private String selectedAnswer;
+
 
     // getters and setters
 }

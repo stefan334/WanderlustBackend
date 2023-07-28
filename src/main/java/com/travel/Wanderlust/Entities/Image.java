@@ -26,7 +26,8 @@ public class Image {
     @JoinColumn(name="id")
     @JsonBackReference
     private User user_id;
-
+    @Column(name = "file_path")
+    private String filePath;
 
 
 }

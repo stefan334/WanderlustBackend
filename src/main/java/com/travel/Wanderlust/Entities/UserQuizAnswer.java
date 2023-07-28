@@ -27,10 +27,14 @@ public class UserQuizAnswer {
     @JoinColumn(name = "question_id")
     private QuizQuestion question;
 
-    @ElementCollection
-    @CollectionTable(name = "user_quiz_answer_values", joinColumns = @JoinColumn(name = "user_quiz_answer_id"))
     @Column(name = "answer_value")
-    private List<String> answerValues;
+    private String answerValues;
+
+    public UserQuizAnswer(User user, QuizQuestion question, String selectedAnswer) {
+        this.user  = user;
+        this.question = question;
+        this.answerValues = selectedAnswer;
+    }
 
     // getters and setters
 }

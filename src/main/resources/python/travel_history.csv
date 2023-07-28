@@ -1,0 +1,19 @@
+User,Locations,City_id
+User1,Paris,1
+User1,London,2
+User1,Tokyo,3
+User1,Berlin,4
+User2,London,2
+User2,Madrid,5
+User2,Barcelona,6
+User3,Sydney,7
+User3,Tokyo,3
+User3,Paris,1
+User4,Miami,8
+User4,Los Angeles,9
+User4,New York,10
+John,Miami,8
+John,Los Angeles,9
+User5,Los Angeles,9
+User5,Romania,11
+stefan@gmail.com,Romania,11

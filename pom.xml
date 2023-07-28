@@ -83,6 +83,11 @@
 			<version>5.7.3</version>
 		</dependency>
 		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-oauth2-test</artifactId>
 			<version>6.0.7</version>

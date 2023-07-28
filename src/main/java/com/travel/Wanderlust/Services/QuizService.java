@@ -5,6 +5,7 @@ import com.travel.Wanderlust.Entities.User;
 import com.travel.Wanderlust.Entities.UserQuizAnswer;
 import com.travel.Wanderlust.Repositories.QuizQuestionRepository;
 import com.travel.Wanderlust.Repositories.UserQuizAnswerRepository;
+import com.travel.Wanderlust.Repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,27 @@ public class QuizService {
 
     @Autowired
     private UserQuizAnswerRepository userQuizAnswerRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     public QuizQuestion addQuestion(QuizQuestion question) {
         return quizQuestionRepository.save(question);
     }
+
+    public String addUserAnswers(List<QuizQuestion> questions, String userEmail) {
+        try {
+            User user = userRepository.findByEmail(userEmail);
+            for (QuizQuestion question : questions) {
+
+                UserQuizAnswer userQuizAnswer = new UserQuizAnswer(user, question, question.getSelectedAnswer());
+                userQuizAnswerRepository.save(userQuizAnswer);
+            }
+            return "All good";
+        }catch (Exception e ){
+            return e.getMessage();
+        }
+    }
+
 
     public List<QuizQuestion> getAllQuestions() {
         return quizQuestionRepository.findAll();
