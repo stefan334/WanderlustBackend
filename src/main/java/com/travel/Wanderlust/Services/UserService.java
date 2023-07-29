@@ -44,6 +44,17 @@ public class UserService {
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+    public List<User> searchUsersByUsername(String username) {
+        return userRepository.findByUsernameContainingIgnoreCase(username);
+    }
+
+    public String getUsernameByEmail(String email){
+        return userRepository.findByEmail(email).getUsername();
+    }
+
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
 
     public List<User> findAll() {
         return userRepository.findAll();

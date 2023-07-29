@@ -49,8 +49,13 @@ public class UserController {
 
     @GetMapping("/users/{email}")
     public User getUsers(@PathVariable String email) {
-        System.out.println("Getting user by email");
-        return userService.findByEmail(email);
+        if(email.contains("@")){
+            System.out.println("Getting user by email");
+            return userService.findByEmail(email);
+        }else{
+            System.out.println("Getting user by username");
+            return userService.findByUsername(email);
+        }
     }
 
     @PostMapping("/uploadImage")
@@ -98,9 +103,9 @@ public class UserController {
         }
     }
 
-    @GetMapping("/getImages/{email}")
-    public List<Image> getImages(@PathVariable String email) throws IOException {
-        User user = userService.findByEmail(email);
+    @GetMapping("/getImages/{username}")
+    public List<Image> getImages(@PathVariable String username) throws IOException {
+        User user = userService.findByUsername(username);
         Set<Image> images = user.getImagesUploaded();
         List<Image> imagesToReturn = new ArrayList<>();
         for(Image image : images){
@@ -150,5 +155,13 @@ public class UserController {
 
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/users/search")
+    public List<User> searchUsers(@RequestParam("username") String username) {
+        // Implement the logic to search for users based on the provided username
+        List<User> users = userService.searchUsersByUsername(username);
+        return users;
+    }
+
 
 }

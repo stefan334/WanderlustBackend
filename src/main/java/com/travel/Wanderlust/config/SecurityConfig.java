@@ -55,6 +55,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests()
                 .requestMatchers("/getImage/**").permitAll()
+                .requestMatchers("/getImages/**").permitAll()
+                .requestMatchers("/users/**").permitAll()
                 .requestMatchers("/register").permitAll()
                 .anyRequest().authenticated().and()
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)

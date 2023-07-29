@@ -16,7 +16,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Table(name = "users", uniqueConstraints={@UniqueConstraint(columnNames={"email"})})
+@Table(name = "users", uniqueConstraints={@UniqueConstraint(columnNames={"email"}), @UniqueConstraint(columnNames={"username"})})
 @NoArgsConstructor
 public class User {
     @Id
@@ -28,6 +28,9 @@ public class User {
 
     @Column(name = "email")
     private String email;
+
+    @Column(name = "username")
+    private String username;
 
     @Column(name = "password")
     private String password;
@@ -88,5 +91,11 @@ public class User {
         return password;
     }
 
+    public String getUsername() {
+        return username;
+    }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
 }
