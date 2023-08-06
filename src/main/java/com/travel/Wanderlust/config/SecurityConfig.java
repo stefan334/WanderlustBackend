@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests()
                 .requestMatchers("/getImage/**").permitAll()
                 .requestMatchers("/getImages/**").permitAll()
+                .requestMatchers("/getAllImages").permitAll()
                 .requestMatchers("/users/**").permitAll()
                 .requestMatchers("/register").permitAll()
                 .anyRequest().authenticated().and()

@@ -28,6 +28,10 @@ public class Image {
     private User user_id;
     @Column(name = "file_path")
     private String filePath;
+    @Column(name = "longitude")
+    private String longitude;
+    @Column(name = "latitude")
+    private String latitude;
 
 
 }

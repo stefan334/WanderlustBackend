@@ -3,6 +3,7 @@ package com.travel.Wanderlust.Controllers;
 import com.travel.Wanderlust.Entities.Image;
 import com.travel.Wanderlust.Entities.Location;
 import com.travel.Wanderlust.Entities.User;
+import com.travel.Wanderlust.Repositories.ImageRepository;
 import com.travel.Wanderlust.Repositories.LocationRepository;
 import com.travel.Wanderlust.Repositories.UserRepository;
 import com.travel.Wanderlust.Services.UserService;
@@ -28,6 +29,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ImageRepository imageRepository;
     @Autowired
     private LocationRepository locationRepository;
 
@@ -59,11 +62,12 @@ public class UserController {
     }
 
     @PostMapping("/uploadImage")
-    public boolean uploadImage(@RequestParam("email") String email, @RequestParam("image") MultipartFile imageFile, @RequestParam("location") String location, @RequestParam("name")String name) {
+    public boolean uploadImage(@RequestParam("email") String email, @RequestParam("image") MultipartFile imageFile, @RequestParam("longitude") String longitude, @RequestParam("latitude") String latitude, @RequestParam("name")String name) {
         try {
             Image image = new Image();
 
-            image.setLocation(location);
+            image.setLatitude(latitude);
+            image.setLongitude(longitude);
             User user = userService.findByEmail(email);
 
             String fileName = imageFile.getOriginalFilename();
@@ -116,6 +120,30 @@ public class UserController {
                 if (resource.exists() && resource.isReadable()) {
                     Image imageWithURI = new Image();
                     imageWithURI.setName(image.getName());
+                    imageWithURI.setFilePath("http://localhost:8080/getImage/" + image.getFilePath());
+                    imagesToReturn.add(imageWithURI);
+                }
+            }
+        }
+
+        return imagesToReturn;
+    }
+
+    @GetMapping("/getAllImages")
+    public List<Image> getImages() throws IOException {
+
+        List<Image> images = imageRepository.findAll();
+        List<Image> imagesToReturn = new ArrayList<>();
+        for(Image image : images){
+            if(image.getFilePath() != null) {
+                Path imagePath = Paths.get("src/main/resources/images", image.getFilePath());
+
+                Resource resource = new UrlResource(imagePath.toUri());
+                if (resource.exists() && resource.isReadable()) {
+                    Image imageWithURI = new Image();
+                    imageWithURI.setName(image.getName());
+                    imageWithURI.setLongitude(image.getLongitude());
+                    imageWithURI.setLatitude(image.getLatitude());
                     imageWithURI.setFilePath("http://localhost:8080/getImage/" + image.getFilePath());
                     imagesToReturn.add(imageWithURI);
                 }
