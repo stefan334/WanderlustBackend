@@ -19,10 +19,10 @@ public class RecommendationService {
     @Autowired
     private LocationRepository locationRepository;
 
-    public List<Optional<Location>> getRecommendedLocations(String userEmail) {
+    public List<Optional<Location>> getRecommendedLocations(String username) {
 
         try {
-            User user = userRepository.findByEmail(userEmail);
+            User user = userRepository.findByUsername(username);
             ProcessBuilder processBuilder = new ProcessBuilder("C:/Python310/python.exe", "C:/Uni/Licenta/Backend/Wanderlust/src/main/resources/python/script.py", user.getId().toString());
 
             Process process = null;
@@ -39,6 +39,7 @@ public class RecommendationService {
             while ((line = reader.readLine()) != null) {
                 output.append(line);
             }
+            System.out.println(output);
 
             String[] recommendedCitiesArray = output.toString().replaceAll("[\\[\\]\\s]", "").split(",");
             List<Optional<Location>> locations = new LinkedList<>();

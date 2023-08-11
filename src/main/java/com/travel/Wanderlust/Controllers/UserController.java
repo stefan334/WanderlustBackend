@@ -62,7 +62,7 @@ public class UserController {
     }
 
     @PostMapping("/uploadImage")
-    public boolean uploadImage(@RequestParam("email") String email, @RequestParam("image") MultipartFile imageFile, @RequestParam("longitude") String longitude, @RequestParam("latitude") String latitude, @RequestParam("name")String name) {
+    public boolean uploadImage(@RequestParam("email") String email, @RequestParam("image") MultipartFile imageFile, @RequestParam("longitude") String longitude, @RequestParam("latitude") String latitude,@RequestParam("location") String location, @RequestParam("name")String name) {
         try {
             Image image = new Image();
 
@@ -84,6 +84,15 @@ public class UserController {
             }
 
             user.addImage(image);
+            Location locationInDb = locationRepository.findByName(location);
+
+            if (locationInDb == null) {
+                // Location does not exist, create a new one
+                locationInDb = new Location();
+                locationInDb.setName(location);
+                locationRepository.save(locationInDb);
+            }
+            user.addLocation(locationInDb);
             userRepository.save(user);
         } catch (Exception e) {
             System.out.println(e);

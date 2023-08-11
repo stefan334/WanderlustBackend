@@ -19,8 +19,8 @@ public class RecommendationController {
     private RecommendationService recommendationService;
 
     @GetMapping("/recommendation")
-    public ResponseEntity<List<Optional<Location>>> getRecommendedCities(@RequestParam("email") String email){
-        List<Optional<Location>> recommendedCities = recommendationService.getRecommendedLocations(email);
+    public ResponseEntity<List<Optional<Location>>> getRecommendedCities(@RequestParam("username") String username){
+        List<Optional<Location>> recommendedCities = recommendationService.getRecommendedLocations(username);
         return ResponseEntity.ok(recommendedCities);
     }
 }

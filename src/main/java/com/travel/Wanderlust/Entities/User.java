@@ -98,4 +98,8 @@ public class User {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    public void addLocation(Location location){
+        visitedLocations.add(location);
+    }
 }
