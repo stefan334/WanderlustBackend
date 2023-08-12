@@ -31,6 +31,7 @@ public class Post {
     private List<Like> likes = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Comment> comments = new ArrayList<>();
 
     @Temporal(TemporalType.TIMESTAMP) // Use the appropriate temporal type
@@ -42,11 +43,15 @@ public class Post {
     private User user;
 
     public void addLike(Like like){
-        likes.add(like);
+        this.likes.add(like);
     }
 
     public void removeLike(Like existingLike) {
         this.likes.remove(existingLike);
+    }
+
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
     }
 
     // Other fields and getters/setters

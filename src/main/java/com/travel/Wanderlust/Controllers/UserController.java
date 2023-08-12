@@ -154,6 +154,23 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     }
 
+    @PostMapping("/comment/{postId}")
+    public ResponseEntity<?> addComment(@PathVariable("postId") Long postId, @RequestParam("email") String email, @RequestBody Map<String, String> requestBody) {
+        Optional<Post> postOptional = postRepository.findById(postId);
+        if (postOptional.isPresent()) {
+            Post post = postOptional.get();
+            User user = userRepository.findByEmail(email);
+
+            String commentText = requestBody.get("text");
+            Comment comment = new Comment(post, user, commentText);
+            post.addComment(comment);
+            postRepository.save(post);
+
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(post);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+    }
+
 
 
         @GetMapping("/getImage/{imageSavedName}")
