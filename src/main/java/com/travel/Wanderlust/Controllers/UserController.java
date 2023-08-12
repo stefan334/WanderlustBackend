@@ -1,16 +1,13 @@
 package com.travel.Wanderlust.Controllers;
 
-import com.travel.Wanderlust.Entities.Image;
-import com.travel.Wanderlust.Entities.Location;
-import com.travel.Wanderlust.Entities.User;
-import com.travel.Wanderlust.Repositories.ImageRepository;
-import com.travel.Wanderlust.Repositories.LocationRepository;
-import com.travel.Wanderlust.Repositories.UserRepository;
+import com.travel.Wanderlust.Entities.*;
+import com.travel.Wanderlust.Repositories.*;
 import com.travel.Wanderlust.Services.UserService;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +18,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 @RestController
@@ -33,6 +33,11 @@ public class UserController {
     private ImageRepository imageRepository;
     @Autowired
     private LocationRepository locationRepository;
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private LikeRepository likeRepository;
 
     @PostMapping("/register")
     public Map<String, String> saveUser(@RequestBody User user) {
@@ -64,6 +69,10 @@ public class UserController {
     @PostMapping("/uploadImage")
     public boolean uploadImage(@RequestParam("email") String email, @RequestParam("image") MultipartFile imageFile, @RequestParam("longitude") String longitude, @RequestParam("latitude") String latitude,@RequestParam("location") String location, @RequestParam("name")String name) {
         try {
+
+            Post post = new Post();
+            post.setComments(new ArrayList<>());
+            post.setLikes(new ArrayList<>());
             Image image = new Image();
 
             image.setLatitude(latitude);
@@ -85,6 +94,10 @@ public class UserController {
 
             user.addImage(image);
             Location locationInDb = locationRepository.findByName(location);
+            post.setImage(image);
+            post.setCreationDate(Date.from(Instant.now()));
+            post.setUser(user);
+            postRepository.save(post);
 
             if (locationInDb == null) {
                 // Location does not exist, create a new one
@@ -101,7 +114,49 @@ public class UserController {
         return true;
     }
 
-    @GetMapping("/getImage/{imageSavedName}")
+    @GetMapping("/getLatestPosts")
+    public List<Post> getPosts() {
+        // Calculate the start and end dates for the last month
+        LocalDate currentDate = LocalDate.now();
+        LocalDate lastMonthStart = currentDate.minusMonths(1).withDayOfMonth(1);
+        LocalDate lastMonthEnd = currentDate.minusMonths(1).withDayOfMonth(lastMonthStart.lengthOfMonth());
+
+        // Convert LocalDate to Date
+        Date startDate = Date.from(lastMonthStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(lastMonthEnd.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        // Retrieve posts from the last month using the repository method
+        return postRepository.findAll();
+
+    }
+    @PostMapping("/like/{postId}")
+    public ResponseEntity<?> likeOrUnlikePost(@PathVariable("postId") Long postId, @RequestParam("email") String email) {
+        Optional<Post> postOptional = postRepository.findById(postId);
+        if (postOptional.isPresent()) {
+            Post post = postOptional.get();
+            User user = userRepository.findByEmail(email);
+
+            // Check if the user has already liked the post
+            Like existingLike = likeRepository.findByPostAndUser(post, user);
+            if (existingLike != null) {
+                // User has already liked the post, so remove the like
+                post.removeLike(existingLike);
+                likeRepository.delete(existingLike);
+            } else {
+                // User has not liked the post, so add the like
+                post.addLike(new Like(post, user));
+
+            }
+
+            postRepository.save(post);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(post);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+    }
+
+
+
+        @GetMapping("/getImage/{imageSavedName}")
     public ResponseEntity<Resource> getImage(@PathVariable String imageSavedName) throws IOException {
         Path imagePath = Paths.get("src/main/resources/images", imageSavedName);
 
