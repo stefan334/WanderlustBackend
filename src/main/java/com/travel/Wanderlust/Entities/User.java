@@ -45,7 +45,19 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "location_id"))
     private Set<Location> visitedLocations = new HashSet<>();
 
-    
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "user_followers",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "follower_id"))
+    @JsonIgnore
+    private Set<User> following = new HashSet<>();
+
+    @JsonIgnore
+    @ManyToMany(mappedBy = "following") // Reverse the mappedBy attribute
+    private Set<User> followers = new HashSet<>();
+
+
 
     public Role getRole() {
         return role;
@@ -102,4 +114,18 @@ public class User {
     public void addLocation(Location location){
         visitedLocations.add(location);
     }
+
+    public void addFollowing(User user) {
+        following.add(user);
+    }
+    public void addFollower(User user) {
+        followers.add(user);
+    }
+
+    public void unfollow(User user) {
+        following.remove(user);
+    }
+
+
+
 }

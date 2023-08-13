@@ -7,6 +7,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -48,15 +49,15 @@ public class UserController {
     @GetMapping("/users")
     public List<User> getUsers() {
         System.out.println("We are getting all users");
-        List<User> users  = userService.findAll();
 
 
-        return users;
+        return userService.findAll();
 
     }
 
     @GetMapping("/users/{email}")
     public User getUsers(@PathVariable String email) {
+        System.out.println(email);
         if(email.contains("@")){
             System.out.println("Getting user by email");
             return userService.findByEmail(email);
@@ -115,20 +116,28 @@ public class UserController {
     }
 
     @GetMapping("/getLatestPosts")
-    public List<Post> getPosts() {
+    public List<Post> getPosts(
+            @RequestParam int page,
+            @RequestParam int pageSize) {
         // Calculate the start and end dates for the last month
         LocalDate currentDate = LocalDate.now();
-        LocalDate lastMonthStart = currentDate.minusMonths(1).withDayOfMonth(1);
-        LocalDate lastMonthEnd = currentDate.minusMonths(1).withDayOfMonth(lastMonthStart.lengthOfMonth());
+        LocalDate lastMonthStart = currentDate.withDayOfMonth(1);
+        LocalDate lastMonthEnd = currentDate.withDayOfMonth(lastMonthStart.lengthOfMonth());
 
         // Convert LocalDate to Date
         Date startDate = Date.from(lastMonthStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date endDate = Date.from(lastMonthEnd.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        System.out.println("Start date" + startDate + "   End date: " + endDate);
 
-        // Retrieve posts from the last month using the repository method
-        return postRepository.findAll();
+        // Calculate the offset for pagination
+        int offset = (page - 1) * pageSize;
 
+        // Retrieve posts from the last month using the repository method with pagination
+        return postRepository.findAllByCreationDateBetween(startDate, endDate, PageRequest.of(offset, pageSize));
     }
+
+
+
     @PostMapping("/like/{postId}")
     public ResponseEntity<?> likeOrUnlikePost(@PathVariable("postId") Long postId, @RequestParam("email") String email) {
         Optional<Post> postOptional = postRepository.findById(postId);
@@ -172,8 +181,30 @@ public class UserController {
     }
 
 
+    @GetMapping("/getPostDetailsFromImage/{imageId}")
+    public ResponseEntity<?> getPostDetailsFromImage(@PathVariable Long imageId) {
+        try {
+            Image image = imageRepository.findById(imageId).orElse(null);
 
-        @GetMapping("/getImage/{imageSavedName}")
+            if (image == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Post post = postRepository.findByImage(image);
+
+            if (post == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(post);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+
+    @GetMapping("/getImage/{imageSavedName}")
     public ResponseEntity<Resource> getImage(@PathVariable String imageSavedName) throws IOException {
         Path imagePath = Paths.get("src/main/resources/images", imageSavedName);
 
@@ -202,6 +233,7 @@ public class UserController {
                     Image imageWithURI = new Image();
                     imageWithURI.setName(image.getName());
                     imageWithURI.setFilePath("http://localhost:8080/getImage/" + image.getFilePath());
+                    imageWithURI.setImage_id(image.getImage_id());
                     imagesToReturn.add(imageWithURI);
                 }
             }
@@ -271,6 +303,70 @@ public class UserController {
         List<User> users = userService.searchUsersByUsername(username);
         return users;
     }
+
+    // Controller method to handle following a user
+    @PostMapping("/follow")
+    public ResponseEntity<?> followUser(@RequestParam String userEmailToFollow, @RequestParam String currentUserEmail) {
+        // Retrieve the current user and the user to follow from your repository
+        try{
+            User userToFollow = userRepository.findByEmail(userEmailToFollow);
+
+        User currentUser = userRepository.findByEmail(currentUserEmail);
+
+        if (currentUser != null && userToFollow != null) {
+            currentUser.addFollowing(userToFollow);
+            userToFollow.addFollower(currentUser);
+            userRepository.save(currentUser);
+            userRepository.save(userToFollow);
+            System.out.println("This user is following2: " + currentUser.getFollowing());
+            System.out.println("This user has followers2: " + currentUser.getFollowers());
+            System.out.println("That user is following2: " + userToFollow.getFollowing());
+            System.out.println("That user has followers2: " + userToFollow.getFollowers());
+            return ResponseEntity.ok().build();
+        }
+        }catch (Exception e){
+            System.out.println(e);
+        }
+
+        return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/getFollowing/{currentUserUsername}")
+    public ResponseEntity<?> getFollowing(@PathVariable String currentUserUsername) {
+        // Retrieve the current user and the user to follow from your repository
+        User currentUser = userRepository.findByUsername(currentUserUsername);
+        System.out.println("This user is following: " + currentUser.getFollowing());
+        return ResponseEntity.ok().body(currentUser.getFollowing());
+
+    }
+
+
+
+    @GetMapping("/getFollowers/{currentUserUsername}")
+    public ResponseEntity<?> getFollowers(@PathVariable String currentUserUsername) {
+        // Retrieve the current user and the user to follow from your repository
+        User currentUser = userRepository.findByUsername(currentUserUsername);
+        System.out.println("This user is following: " + currentUser.getFollowing());
+        return ResponseEntity.ok().body(currentUser.getFollowers());
+
+    }
+
+    // Controller method to handle unfollowing a user
+    @PostMapping("/unfollow")
+    public ResponseEntity<?> unfollowUser(@RequestParam String userEmailToUnfollow, @RequestParam String currentUserEmail) {
+        // Retrieve the current user and the user to unfollow from your repository
+        User currentUser = userRepository.findByEmail(currentUserEmail);
+        User userToUnfollow = userRepository.findByEmail(userEmailToUnfollow);
+
+        if (currentUser != null && userToUnfollow != null) {
+            currentUser.unfollow(userToUnfollow);
+            userRepository.save(currentUser);
+            return ResponseEntity.ok().build();
+        }
+
+        return ResponseEntity.badRequest().build();
+    }
+
 
 
 }
