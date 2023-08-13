@@ -7,6 +7,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -134,6 +135,28 @@ public class UserController {
 
         // Retrieve posts from the last month using the repository method with pagination
         return postRepository.findAllByCreationDateBetween(startDate, endDate, PageRequest.of(offset, pageSize));
+    }
+
+
+    @GetMapping("/getFollowingPosts")
+    public ResponseEntity<?> getFollowingPosts(
+            @RequestParam String userEmail,
+            @RequestParam int page,
+            @RequestParam int pageSize) {
+        try {
+            User user = userRepository.findByEmail(userEmail);
+
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Set<User> following = user.getFollowing();
+            Page<Post> followingPostsPage = postRepository.findByUserIn(following, PageRequest.of(page - 1, pageSize));
+
+            return ResponseEntity.ok(followingPostsPage.getContent());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 
