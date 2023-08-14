@@ -51,6 +51,9 @@ public class UserService {
     public String getUsernameByEmail(String email){
         return userRepository.findByEmail(email).getUsername();
     }
+    public User getUserByEmail(String email){
+        return userRepository.findByEmail(email);
+    }
 
     public User findByUsername(String username) {
         return userRepository.findByUsername(username);
@@ -63,4 +66,5 @@ public class UserService {
     public void deleteById(Long id) {
         userRepository.deleteById(id);
     }
+
 }

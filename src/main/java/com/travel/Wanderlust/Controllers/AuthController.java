@@ -1,5 +1,6 @@
 package com.travel.Wanderlust.Controllers;
 
+import com.travel.Wanderlust.Entities.User;
 import com.travel.Wanderlust.Services.TokenService;
 import com.travel.Wanderlust.Services.UserService;
 import org.slf4j.Logger;
@@ -32,8 +33,9 @@ public class AuthController {
         LOG.info("Token granted: {}", token);
         Map<String, String> map = new HashMap<>();
         map.put("access_token", token);
-        String username = userService.getUsernameByEmail(authentication.getName());
-        map.put("username", username);
+        User user = userService.getUserByEmail(authentication.getName());
+        map.put("username", user.getUsername());
+        map.put("role", user.getRole().name());
         return map;
     }
 

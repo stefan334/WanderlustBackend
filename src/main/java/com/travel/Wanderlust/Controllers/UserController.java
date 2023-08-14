@@ -2,6 +2,7 @@ package com.travel.Wanderlust.Controllers;
 
 import com.travel.Wanderlust.Entities.*;
 import com.travel.Wanderlust.Repositories.*;
+import com.travel.Wanderlust.Services.NotificationService;
 import com.travel.Wanderlust.Services.UserService;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,8 @@ public class UserController {
 
     @Autowired
     private LikeRepository likeRepository;
+    @Autowired
+    private NotificationService notificationService;
 
     @PostMapping("/register")
     public Map<String, String> saveUser(@RequestBody User user) {
@@ -50,10 +53,7 @@ public class UserController {
     @GetMapping("/users")
     public List<User> getUsers() {
         System.out.println("We are getting all users");
-
-
         return userService.findAll();
-
     }
 
     @GetMapping("/users/{email}")
@@ -163,42 +163,56 @@ public class UserController {
 
     @PostMapping("/like/{postId}")
     public ResponseEntity<?> likeOrUnlikePost(@PathVariable("postId") Long postId, @RequestParam("email") String email) {
-        Optional<Post> postOptional = postRepository.findById(postId);
-        if (postOptional.isPresent()) {
-            Post post = postOptional.get();
-            User user = userRepository.findByEmail(email);
+        try {
+            Optional<Post> postOptional = postRepository.findById(postId);
+            if (postOptional.isPresent()) {
+                Post post = postOptional.get();
+                User user = userRepository.findByEmail(email);
 
-            // Check if the user has already liked the post
-            Like existingLike = likeRepository.findByPostAndUser(post, user);
-            if (existingLike != null) {
-                // User has already liked the post, so remove the like
-                post.removeLike(existingLike);
-                likeRepository.delete(existingLike);
-            } else {
-                // User has not liked the post, so add the like
-                post.addLike(new Like(post, user));
+                // Check if the user has already liked the post
+                Like existingLike = likeRepository.findByPostAndUser(post, user);
+                if (existingLike != null) {
+                    // User has already liked the post, so remove the like
+                    post.removeLike(existingLike);
+                    likeRepository.delete(existingLike);
+                } else {
+                    // User has not liked the post, so add the like
+                    post.addLike(new Like(post, user));
 
+                    // Create like notification
+                    notificationService.createLikeNotification(post.getUser(), user, postId);
+                }
+
+                postRepository.save(post);
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body(post);
             }
-
-            postRepository.save(post);
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body(post);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     }
 
+
     @PostMapping("/comment/{postId}")
     public ResponseEntity<?> addComment(@PathVariable("postId") Long postId, @RequestParam("email") String email, @RequestBody Map<String, String> requestBody) {
-        Optional<Post> postOptional = postRepository.findById(postId);
-        if (postOptional.isPresent()) {
-            Post post = postOptional.get();
-            User user = userRepository.findByEmail(email);
+        try {
+            Optional<Post> postOptional = postRepository.findById(postId);
+            if (postOptional.isPresent()) {
+                Post post = postOptional.get();
+                User user = userRepository.findByEmail(email);
 
-            String commentText = requestBody.get("text");
-            Comment comment = new Comment(post, user, commentText);
-            post.addComment(comment);
-            postRepository.save(post);
+                String commentText = requestBody.get("text");
+                Comment comment = new Comment(post, user, commentText);
+                post.addComment(comment);
+                postRepository.save(post);
 
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body(post);
+                // Create comment notification
+                notificationService.createCommentNotification(post.getUser(), user, postId);
+
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body(post);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     }
@@ -330,24 +344,22 @@ public class UserController {
     // Controller method to handle following a user
     @PostMapping("/follow")
     public ResponseEntity<?> followUser(@RequestParam String userEmailToFollow, @RequestParam String currentUserEmail) {
-        // Retrieve the current user and the user to follow from your repository
-        try{
+        try {
             User userToFollow = userRepository.findByEmail(userEmailToFollow);
+            User currentUser = userRepository.findByEmail(currentUserEmail);
 
-        User currentUser = userRepository.findByEmail(currentUserEmail);
+            if (currentUser != null && userToFollow != null) {
+                currentUser.addFollowing(userToFollow);
+                userToFollow.addFollower(currentUser);
+                userRepository.save(currentUser);
+                userRepository.save(userToFollow);
 
-        if (currentUser != null && userToFollow != null) {
-            currentUser.addFollowing(userToFollow);
-            userToFollow.addFollower(currentUser);
-            userRepository.save(currentUser);
-            userRepository.save(userToFollow);
-            System.out.println("This user is following2: " + currentUser.getFollowing());
-            System.out.println("This user has followers2: " + currentUser.getFollowers());
-            System.out.println("That user is following2: " + userToFollow.getFollowing());
-            System.out.println("That user has followers2: " + userToFollow.getFollowers());
-            return ResponseEntity.ok().build();
-        }
-        }catch (Exception e){
+                // Create follow notification
+                notificationService.createFollowNotification(userToFollow, currentUser);
+
+                return ResponseEntity.ok().build();
+            }
+        } catch (Exception e) {
             System.out.println(e);
         }
 
@@ -372,6 +384,15 @@ public class UserController {
         System.out.println("This user is following: " + currentUser.getFollowing());
         return ResponseEntity.ok().body(currentUser.getFollowers());
 
+    }
+    @GetMapping("getNotifications/{username}/unread")
+    public List<Notification> getUnreadNotifications(@PathVariable String username) {
+        User user = userService.findByUsername(username);
+        if (user == null) {
+            // Return an empty list or appropriate response if user is not found
+            return Collections.emptyList();
+        }
+        return notificationService.getUnreadNotifications(user);
     }
 
     // Controller method to handle unfollowing a user
