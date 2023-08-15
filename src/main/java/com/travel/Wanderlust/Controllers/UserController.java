@@ -10,6 +10,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -131,12 +133,16 @@ public class UserController {
         System.out.println("Start date" + startDate + "   End date: " + endDate);
 
         // Calculate the offset for pagination
-        int offset = (page - 1) * pageSize;
-
-        // Retrieve posts from the last month using the repository method with pagination
-        return postRepository.findAllByCreationDateBetween(startDate, endDate, PageRequest.of(offset, pageSize));
+        Sort sortByCreationDateDesc = Sort.by(Sort.Direction.DESC, "creationDate");
+        Pageable pageable = PageRequest.of(page - 1, pageSize, sortByCreationDateDesc);
+        return postRepository.findAllByCreationDateBetween(startDate, endDate, pageable);
     }
 
+    @GetMapping("/getPostsOfUser/{id}")
+    public List<Post> getPostsOfUser(
+           @PathVariable Long id) {
+        return postRepository.findByUserId(id);
+    }
 
     @GetMapping("/getFollowingPosts")
     public ResponseEntity<?> getFollowingPosts(

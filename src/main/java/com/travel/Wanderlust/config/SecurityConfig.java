@@ -60,7 +60,6 @@ public class SecurityConfig {
                 .requestMatchers("/users/**").permitAll()
                 .requestMatchers("/register").permitAll()
                 .requestMatchers("/recommendation**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated().and()
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
