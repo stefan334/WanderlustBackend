@@ -34,7 +34,7 @@ public class Post {
     @JsonManagedReference
     private List<Comment> comments = new ArrayList<>();
 
-    @Temporal(TemporalType.TIMESTAMP) // Use the appropriate temporal type
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "creation_date")
     private Date creationDate;
 
@@ -54,5 +54,4 @@ public class Post {
         this.comments.add(comment);
     }
 
-    // Other fields and getters/setters
 }

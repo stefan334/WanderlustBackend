@@ -21,7 +21,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-        System.out.println("LOOKING");
         User user = userRepository.findByEmail(email);
         System.out.println(user);
         if (user == null) {

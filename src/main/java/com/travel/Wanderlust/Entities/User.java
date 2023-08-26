@@ -54,61 +54,11 @@ public class User {
     private Set<User> following = new HashSet<>();
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "following") // Reverse the mappedBy attribute
+    @ManyToMany(mappedBy = "following")
     private Set<User> followers = new HashSet<>();
-
-
-
-    public Role getRole() {
-        return role;
-    }
 
     public void addImage(Image image){
         this.imagesUploaded.add(image);
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public void addLocation(Location location){
@@ -121,11 +71,7 @@ public class User {
     public void addFollower(User user) {
         followers.add(user);
     }
-
     public void unfollow(User user) {
         following.remove(user);
     }
-
-
-
 }

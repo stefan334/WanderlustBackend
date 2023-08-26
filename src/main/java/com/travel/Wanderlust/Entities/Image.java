@@ -20,8 +20,6 @@ public class Image {
     private Long image_id;
     @Column(name = "name")
     private String name;
-    @Column(name = "location")
-    private String location;
     @ManyToOne
     @JoinColumn(name="id")
     @JsonBackReference
@@ -32,6 +30,5 @@ public class Image {
     private String longitude;
     @Column(name = "latitude")
     private String latitude;
-
 
 }

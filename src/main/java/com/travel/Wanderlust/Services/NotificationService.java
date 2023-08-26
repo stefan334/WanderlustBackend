@@ -58,5 +58,4 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    // Add more methods as needed, e.g., methods to retrieve all notifications, delete notifications, etc.
 }

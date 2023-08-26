@@ -33,6 +33,4 @@ public class Comment {
         this.user = user;
         this.commentText = commentText;
     }
-
-    // Other fields and getters/setters
 }

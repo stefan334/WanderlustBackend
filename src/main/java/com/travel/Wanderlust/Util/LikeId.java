@@ -8,6 +8,4 @@ public class LikeId implements Serializable {
 
     private Long post;
     private Long user;
-
-    // Constructors, getters, and setters
 }

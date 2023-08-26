@@ -21,14 +21,14 @@ public class Notification {
     private NotificationType type;
 
     @ManyToOne
-    private User recipient; // The user who receives the notification
+    private User recipient;
 
     @ManyToOne
-    private User sender; // The user who triggered the action
+    private User sender;
 
-    private Long postId; // ID of the relevant post (for likes and comments)
+    private Long postId;
 
-    private boolean read; // Whether the notification has been read
+    private boolean read;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -36,7 +36,5 @@ public class Notification {
     public Notification() {
         this.createdAt = LocalDateTime.now();
     }
-
-    // Getters and setters
 }
 

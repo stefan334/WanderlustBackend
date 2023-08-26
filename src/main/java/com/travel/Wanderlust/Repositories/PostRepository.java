@@ -23,7 +23,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Post findByImage(Image image);
 
 
-    Page<Post> findByUserIn(Set<User> following, PageRequest of);
+    List<Post> findByUserIn(Set<User> following, Pageable pageable);
 
     List<Post> findByUserId(Long id);
 

@@ -17,6 +17,4 @@ public class Location {
     @Column(name = "name")
     private String name;
 
-    // Constructors, Getters, and Setters
-    // ...
 }
