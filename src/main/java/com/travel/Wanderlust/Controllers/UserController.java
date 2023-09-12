@@ -25,9 +25,28 @@ public class UserController {
     private NotificationService notificationService;
 
     @PostMapping("/register")
-    public Map<String, String> saveUser(@RequestBody User user) {
-        System.out.println("Creating new user: " + user);
-        return userService.save(user);
+    public ResponseEntity<Map<String, String>> saveUser(@RequestBody User user) {
+        Map<String, String> response = new HashMap<>();
+
+        // Check if email already exists
+        if (userRepository.existsByEmail(user.getEmail())) {
+            response.put("error", "Email is already taken.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Validate the password
+        String password = user.getPassword();
+        if (!isValidPassword(password)) {
+            response.put("error", "Password must contain both letters and digits and be at least 6 characters long.");
+            return ResponseEntity.badRequest().body(response);
+        }
+        userService.save(user);
+        response.put("success", "User Added");
+        return ResponseEntity.ok().body(response);
+    }
+
+    private boolean isValidPassword(String password) {
+        return password.matches("^(?=.*[a-zA-Z])(?=.*\\d).{6,}$");
     }
 
     @GetMapping("/users")

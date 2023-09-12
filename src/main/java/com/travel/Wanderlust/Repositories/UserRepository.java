@@ -13,4 +13,6 @@ public interface UserRepository extends JpaRepository<User,Long>{
     List<User> findByUsernameContainingIgnoreCase(String username);
     @Query("SELECT u FROM User u WHERE u.id IN (SELECT p.user.id FROM Post p GROUP BY p.user.id ORDER BY COUNT(p.user.id) DESC LIMIT 1)")
     User findUserWithMostPosts();
+
+    boolean existsByEmail(String email);
 }

@@ -17,8 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @RestController
@@ -40,12 +42,12 @@ public class PostController {
     public List<Post> getPosts(
             @RequestParam int page,
             @RequestParam int pageSize) {
-        LocalDate currentDate = LocalDate.now();
+        LocalDate currentDate = LocalDate.now().minus(1, ChronoUnit.MONTHS);
         LocalDate lastMonthStart = currentDate.withDayOfMonth(1);
         LocalDate lastMonthEnd = currentDate.withDayOfMonth(lastMonthStart.lengthOfMonth());
 
         Date startDate = Date.from(lastMonthStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(lastMonthEnd.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(Instant.now());
 
         Sort sortByCreationDateDesc = Sort.by(Sort.Direction.DESC, "creationDate");
         Pageable pageable = PageRequest.of(page - 1, pageSize, sortByCreationDateDesc);
