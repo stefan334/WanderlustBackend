@@ -4,7 +4,7 @@ from annoy import AnnoyIndex
 from scipy.sparse import dok_matrix
 
 target_user_id = int(sys.argv[1])
-connection = psycopg2.connect(host='localhost', port='5432', database='wanderlust', user='ivan334', password='stefan334')
+connection = psycopg2.connect(host='postgres://ivan334:oHdxWo45goydVzKTsTBDUVfGfRSQdlao@dpg-cpibumi1hbls73bfmen0-a.oregon-postgres.render.com/wanderlust_254l', port='5432', database='wanderlust', user='ivan334', password='oHdxWo45goydVzKTsTBDUVfGfRSQdlao')
 cursor = connection.cursor()
 cursor.execute("SELECT u.id, array_agg(l.id) FROM users u JOIN user_visited_locations uv ON u.id = uv.user_id JOIN locations l ON uv.location_id = l.id GROUP BY u.id")
 user_vectors = cursor.fetchall()
