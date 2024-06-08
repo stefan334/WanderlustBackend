@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: wanderlust
+      POSTGRES_USER: ivan334
+      POSTGRES_PASSWORD: stefan334
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/wanderlust
+      SPRING_DATASOURCE_USERNAME: ivan334
+      SPRING_DATASOURCE_PASSWORD: stefan334
+
+volumes:
+  postgres-data:
